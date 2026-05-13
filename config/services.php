@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'wc2026' => [
+    'api_key'  => env('WC2026_API_KEY'),
+    'base_url' => env('WC2026_BASE_URL', 'https://api.wc2026api.com'),
+        ],
 
 ];
