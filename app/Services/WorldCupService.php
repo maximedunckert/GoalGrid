@@ -4,6 +4,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class WorldCupService
 {
@@ -18,12 +19,16 @@ class WorldCupService
 
     protected function get(string $endpoint, array $params = []): array
     {
-        $response = Http::withToken($this->apiKey)
-            ->get("{$this->baseUrl}/{$endpoint}", $params);
+        $cacheKey = 'wc_' . $endpoint . '_' . md5(serialize($params));
 
-        $response->throw(); // throws on 4xx/5xx
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($endpoint, $params) {
+            $response = Http::withToken($this->apiKey)
+                ->get("{$this->baseUrl}/{$endpoint}", $params);
 
-        return $response->json();
+            $response->throw();
+
+            return $response->json();
+        });
     }
 
     public function getMatches(array $filters = []): array
@@ -34,10 +39,5 @@ class WorldCupService
     public function getStandings(): array
     {
         return $this->get('standings');
-    }
-
-    public function getMatchesByTeam(string $team): array
-    {
-        return $this->get('matches', ['team' => $team]);
     }
 }
